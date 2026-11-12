@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1: install all dependencies (cached until package*.json changes)
-FROM node:24-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
@@ -17,7 +17,7 @@ FROM dev AS build
 RUN npm run build
 
 # Stage 4: the slim image that actually ships
-FROM node:24-alpine AS runtime
+FROM node:25-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY package*.json ./
