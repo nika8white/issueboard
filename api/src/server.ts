@@ -1,12 +1,18 @@
+import { readFileSync } from "node:fs";
 import express from "express";
 import pg from "pg";
 import { log } from "./log.js";
+
+// Prefer a mounted secret file (e.g. from Secret Manager); fall back to the env var for local dev.
+const password = process.env.DB_PASSWORD_FILE
+  ? readFileSync(process.env.DB_PASSWORD_FILE, "utf8").trim()
+  : process.env.DB_PASSWORD ?? "issueboard";
 
 export const pool = new pg.Pool({
   host: process.env.DB_HOST ?? "localhost",
   port: Number(process.env.DB_PORT ?? 5432),
   user: process.env.DB_USER ?? "issueboard",
-  password: process.env.DB_PASSWORD ?? "issueboard",
+  password,
   database: process.env.DB_NAME ?? "issueboard",
 });
 
