@@ -29,7 +29,7 @@ export default function App() {
 
   return (
     <main>
-      <h1>IssueBoard</h1>
+      <h1>To-Do List</h1>
       <form onSubmit={add}>
         <label htmlFor="title">Issue</label>
         <input id="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
