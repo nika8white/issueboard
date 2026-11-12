@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: issueboard
+resources:
+  - namespace.yaml
+  - ../../base
+  - postgres.yaml
+configMapGenerator:
+  - name: api-config
+    literals: [DB_HOST=db, DB_PORT=5432, DB_NAME=issueboard, DB_USER=issueboard]
+secretGenerator: # fine for a local throwaway cluster, never for real environments
+  - name: db-credentials
+    literals: [DB_PASSWORD=issueboard]
+images:
+  - name: issueboard-api
+    newTag: dev
+  - name: issueboard-web
+    newTag: dev

@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: issueboard
+resources:
+- ../../base
+- serviceaccount.yaml
+- gateway.yaml
+patches:
+- path: api-cloudsql.yaml
+configMapGenerator:
+- literals:
+  - DB_HOST=127.0.0.1
+  - DB_PORT=5432
+  - DB_NAME=issueboard
+  - DB_USER=issueboard
+  name: api-config
+images:
+- name: issueboard-api
+  newName: europe-west3-docker.pkg.dev/issueboard-25603/issueboard/api
+  newTag: manual-1
+- name: issueboard-web
+  newName: europe-west3-docker.pkg.dev/issueboard-25603/issueboard/web
+  newTag: manual-1
