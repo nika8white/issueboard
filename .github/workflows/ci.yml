@@ -15,6 +15,20 @@ concurrency:
 jobs:
   api:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: issueboard
+          POSTGRES_PASSWORD: issueboard
+          POSTGRES_DB: issueboard
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U issueboard"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DB_HOST: localhost
     defaults:
       run:
         working-directory: api
@@ -47,12 +61,28 @@ jobs:
       - run: npm run build
 
   images:
-    needs: [api, web] # only build images once the code is green
+    needs: [changes, api, web]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - run: docker build -t issueboard-api:ci ./api
-      - run: docker build -t issueboard-web:ci ./web
+      - uses: docker/setup-buildx-action@v4
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          push: false
+          tags: issueboard-api:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: false
+          tags: issueboard-web:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
   manifests:
     runs-on: ubuntu-latest
@@ -62,3 +92,20 @@ jobs:
         run: |
           kubectl kustomize k8s/overlays/local > /dev/null
           kubectl kustomize k8s/overlays/gke > /dev/null
+  
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read      # the filter reads the PR's changed files
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'api/**'
+              - 'web/**'

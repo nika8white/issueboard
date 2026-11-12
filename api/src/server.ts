@@ -1,7 +1,7 @@
 import express from "express";
 import pg from "pg";
 
-const pool = new pg.Pool({
+export const pool = new pg.Pool({
   host: process.env.DB_HOST ?? "localhost",
   port: Number(process.env.DB_PORT ?? 5432),
   user: process.env.DB_USER ?? "issueboard",
@@ -9,7 +9,7 @@ const pool = new pg.Pool({
   database: process.env.DB_NAME ?? "issueboard",
 });
 
-async function migrate() {
+export async function migrate() {
   await pool.query(`CREATE TABLE IF NOT EXISTS issues (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
