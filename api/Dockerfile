@@ -10,7 +10,7 @@ RUN npm ci
 FROM deps AS dev
 COPY tsconfig.json ./
 COPY src ./src
-CMD ["npm", "run", "dev"]^
+CMD ["npm", "run", "dev"]
 
 # Stage 3: compile TypeScript to dist/
 FROM dev AS build
