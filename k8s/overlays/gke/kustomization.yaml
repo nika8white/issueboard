@@ -5,6 +5,7 @@ resources:
 - ../../base
 - serviceaccount.yaml
 - gateway.yaml
+- api-networkpolicy.yaml
 patches:
 - path: api-cloudsql.yaml
 configMapGenerator:

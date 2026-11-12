@@ -72,6 +72,7 @@ jobs:
         with:
           context: ./api
           push: false
+          load: true 
           tags: issueboard-api:ci
           cache-from: type=gha,scope=api
           cache-to: type=gha,mode=max,scope=api
@@ -80,9 +81,21 @@ jobs:
         with:
           context: ./web
           push: false
+          load: true 
           tags: issueboard-web:ci
           cache-from: type=gha,scope=web
           cache-to: type=gha,mode=max,scope=web
+      - name: Scan API image
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image --exit-code 1 --severity CRITICAL --ignore-unfixed --no-progress \
+            issueboard-api:ci
+
+      - name: Scan web image
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:latest image --exit-code 1 --severity CRITICAL --ignore-unfixed --no-progress \
+            issueboard-web:ci
 
   manifests:
     runs-on: ubuntu-latest
