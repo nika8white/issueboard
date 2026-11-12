@@ -6,6 +6,19 @@ spec:
   template:
     spec:
       serviceAccountName: api
+      volumes:
+        - name: db-secret
+          csi:
+            driver: secrets-store-gke.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: db-password
+      containers:
+        - name: api                          # merged by name into the base "api" container
+          volumeMounts:
+            - name: db-secret
+              mountPath: /var/secrets
+              readOnly: true
       initContainers:
         - name: cloud-sql-proxy
           # Check https://github.com/GoogleCloudPlatform/cloud-sql-proxy/releases for the latest 2.x

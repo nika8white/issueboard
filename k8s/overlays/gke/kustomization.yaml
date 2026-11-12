@@ -6,6 +6,7 @@ resources:
 - serviceaccount.yaml
 - gateway.yaml
 - api-networkpolicy.yaml
+- secretproviderclass.yaml
 patches:
 - path: api-cloudsql.yaml
 configMapGenerator:
@@ -14,6 +15,7 @@ configMapGenerator:
   - DB_PORT=5432
   - DB_NAME=issueboard
   - DB_USER=issueboard
+  - DB_PASSWORD_FILE=/var/secrets/db-password
   name: api-config
 images:
 - name: issueboard-api

@@ -20,7 +20,7 @@ spec:
               containerPort: 3000
           envFrom:
             - configMapRef: { name: api-config }
-            - secretRef: { name: db-credentials }
+            - secretRef: { name: db-credentials, optional: true }   # GKE reads DB_PASSWORD_FILE instead
           readinessProbe:
             httpGet: { path: /readyz, port: http }
             periodSeconds: 5
