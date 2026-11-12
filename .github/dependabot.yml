@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /api
+    schedule: { interval: weekly }
+    groups:
+      api-deps: { patterns: ["*"] }     # one PR for all API updates instead of one per package
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule: { interval: weekly }
+    groups:
+      web-deps: { patterns: ["*"] }
+
+  - package-ecosystem: docker
+    directories: ["/api", "/web"]       # base images in both Dockerfiles (node, nginx)
+    schedule: { interval: weekly }
+
+  - package-ecosystem: github-actions
+    directory: /                        # finds everything in .github/workflows
+    schedule: { interval: weekly }
