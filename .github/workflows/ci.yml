@@ -65,8 +65,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - run: docker build -t issueboard-api:ci ./api
-      - run: docker build -t issueboard-web:ci ./web
+      - uses: docker/setup-buildx-action@v4
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./api
+          push: false
+          tags: issueboard-api:ci
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./web
+          push: false
+          tags: issueboard-web:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
   manifests:
     runs-on: ubuntu-latest
