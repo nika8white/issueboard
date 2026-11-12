@@ -5,6 +5,6 @@ import { app } from "./server.js";
 describe("health", () => {
   it("answers /healthz", async () => {
     const res = await request(app).get("/healthz");
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
   });
 });
