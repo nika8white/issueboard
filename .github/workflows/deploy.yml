@@ -37,7 +37,9 @@ jobs:
   deploy:
     needs: build-push
     runs-on: ubuntu-latest
-    environment: production   # pauses here until you approve
+    environment:
+      name: production        # pauses here until you approve
+      url: ${{ steps.smoke.outputs.url }}   # shows a "View deployment" link in GitHub
     steps:
       - uses: actions/checkout@v6
       - uses: google-github-actions/auth@v3
@@ -57,8 +59,11 @@ jobs:
           kubectl -n issueboard rollout status deployment/api --timeout=5m
           kubectl -n issueboard rollout status deployment/web --timeout=5m
       - name: Smoke test through the load balancer
+        id: smoke
         run: |
           IP=$(kubectl -n issueboard get gateway issueboard -o jsonpath='{.status.addresses[0].value}')
+          echo "url=http://$IP" >> "$GITHUB_OUTPUT"
+          echo "Live at http://$IP" >> "$GITHUB_STEP_SUMMARY"
           for i in $(seq 1 12); do
             curl -fsS "http://$IP/api/version" | grep -q "$GITHUB_SHA" && echo "live" && exit 0
             sleep 10
