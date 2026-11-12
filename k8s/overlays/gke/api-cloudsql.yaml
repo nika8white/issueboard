@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      serviceAccountName: api
+      initContainers:
+        - name: cloud-sql-proxy
+          # Check https://github.com/GoogleCloudPlatform/cloud-sql-proxy/releases for the latest 2.x
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.25.3
+          restartPolicy: Always            # makes it a native sidecar
+          args:
+            - --structured-logs
+            - --health-check
+            - --http-address=0.0.0.0
+            - --port=5432
+            - issueboard-25603:europe-west3:issueboard-db  # your connection name
+          startupProbe:                      # API starts only once the proxy is up
+            httpGet: { path: /startup, port: 9090 }
+            periodSeconds: 1
+            failureThreshold: 60
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
