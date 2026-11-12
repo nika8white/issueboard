@@ -1,5 +1,6 @@
 import express from "express";
 import pg from "pg";
+import { log } from "./log.js";
 
 export const pool = new pg.Pool({
   host: process.env.DB_HOST ?? "localhost",
@@ -92,6 +93,7 @@ app.post("/api/issues", async (req, res) => {
   const { rows } = await pool.query(
     "INSERT INTO issues (title, severity, due_date) VALUES ($1, $2, $3) RETURNING *",
     [title, severity, due_date]);
+    log("INFO", "issue created", { issueId: rows[0].id, severity });
   res.status(201).json(rows[0]);
 });
 
@@ -125,13 +127,21 @@ app.delete("/api/issues", async (req, res) => {
   res.json({ deleted: rowCount });
 });
 
+// Error handler: must come after all routes. Express recognizes it by its 4 parameters,
+// and Express 5 also sends rejected async handlers (e.g. a failed DB query) here.
+app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  log("ERROR", "request failed", { method: req.method, path: req.path, error: String(err) });
+  res.status(500).json({ error: "internal error" });
+});
+
 if (process.env.NODE_ENV !== "test") {
   const port = Number(process.env.PORT ?? 3000);
   migrate()
     .then(() => {
-      const server = app.listen(port, () => console.log(`api listening on :${port}`));
+      const server = app.listen(port, () =>
+        log("INFO", "api started", { port, version: process.env.APP_VERSION ?? "dev" }));
       // Kubernetes sends SIGTERM before killing a pod: finish open requests, then exit.
       process.on("SIGTERM", () => server.close(() => pool.end()));
     })
-    .catch((err) => { console.error("startup failed", err); process.exit(1); });
+    .catch((err) => { log("ERROR", "startup failed", { error: String(err) }); process.exit(1); });
 }
