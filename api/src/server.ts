@@ -27,8 +27,8 @@ app.get("/healthz", (_req, res) => { res.send("ok"); });
 
 // Readiness: "can I serve traffic right now?" Fails while the DB is unreachable.
 app.get("/readyz", async (_req, res) => {
-  try { await pool.query("SELECT 1"); res.send("ready"); }
-  catch { res.status(503).send("db unavailable"); }
+  // LAB 3: deliberately broken, never ready
+  res.status(503).send("not ready");
 });
 
 // Lets you verify which build is live after a deploy.
