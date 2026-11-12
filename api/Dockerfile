@@ -22,6 +22,9 @@ ENV NODE_ENV=production
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev && npm cache clean --force
+# npm is only needed to install; the app runs with plain "node". Removing it
+# drops npm's bundled packages (and their CVEs) from the shipped image.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 COPY --from=build /app/dist ./dist
 ARG APP_VERSION=dev
 ENV APP_VERSION=$APP_VERSION
